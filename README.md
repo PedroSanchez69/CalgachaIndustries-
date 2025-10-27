@@ -1,0 +1,1 @@
+Borre el README anterior, pero el archivo está listo. Se implementó el agregar gallinas, ver historial, crear cuenta de usuario (usando local storage), una imagen de bienvenida y demás. Revisad el código por favor. 🐔
