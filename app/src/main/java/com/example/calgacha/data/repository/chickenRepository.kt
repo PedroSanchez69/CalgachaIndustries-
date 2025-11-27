@@ -18,7 +18,7 @@ class chickenRepository(private val chickenDao: ChickenDao, private val apiServi
                 }
             }
         } catch (e: Exception) {
-            // Handle network errors
+            // Maneja errores de conexión
         }
     }
 
@@ -29,26 +29,26 @@ class chickenRepository(private val chickenDao: ChickenDao, private val apiServi
             val response = apiService.createChicken(chicken)
             if (response.isSuccessful) {
                 response.body()?.let {
-                    // Insert the returned chicken (with the server-generated ID) into the local DB
+                    // Inserta las galllinas en la base de datos con el id generado automaticamente
                     chickenDao.insertChicken(it)
                 }
             }
         } catch (e: Exception) {
-            // Handle network errors
+            // Maneja errores de conexión
         }
     }
 
     suspend fun deleteChicken(chicken: Chicken) {
-        // Only delete if the chicken has a valid, non-null ID
+        // Solo permite la eliminación si el id de la gallina no es null
         chicken.id?.let {
             try {
                 val response = apiService.deleteChicken(it)
                 if (response.isSuccessful) {
-                    // If API deletion is successful, delete from local DB
+                    // Si la eliminación es exitosa, se actualiza la base de datos
                     chickenDao.deleteChicken(chicken)
                 }
             } catch (e: Exception) {
-                // Handle network errors
+                // Maneja errores de conexión
             }
         }
     }

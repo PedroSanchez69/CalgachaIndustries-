@@ -40,7 +40,6 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(title = { Text("Calgacha Industries", style = MaterialTheme.typography.titleLarge) })
 
-        // The image is now a fixed element at the top.
         Image(
             painter = painterResource(id = R.drawable.gallina_fachera),
             contentDescription = "Welcome Image",
@@ -61,10 +60,8 @@ fun HomeScreen(viewModel: MainViewModel, navController: NavController) {
                 Text("Agrega tu primera gallina para empezar.", style = MaterialTheme.typography.bodyMedium)
             }
         } else {
-            // The LazyColumn now correctly takes up the remaining space and scrolls.
             LazyColumn(modifier = Modifier.fillMaxWidth()) {
                 items(chickens) { chicken ->
-                    // Use .let for a safe, non-nullable ID for navigation
                     chicken.id?.let { chickenId ->
                         ChickensRow(
                             chicken = chicken,

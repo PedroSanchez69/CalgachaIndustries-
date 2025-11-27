@@ -38,6 +38,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val database = AppDatabase.getDatabase(applicationContext)
+        // pasa la api service configurada en RetrofitInstance al chickenRepository para que pueda hacer las llamadas a la api
         val chickenRepository = chickenRepository(database.chickenDao(), RetrofitInstance.api)
         val userPreferencesRepository = UserPreferencesRepository(applicationContext)
         val factory = ViewModelFactory(chickenRepository, userPreferencesRepository)

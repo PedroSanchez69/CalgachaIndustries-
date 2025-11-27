@@ -69,7 +69,7 @@ class AddViewModel(private val repository: chickenRepository) : ViewModel() {
         val imagePathToSave = imageUri.value?.toString()
 
         val newChicken = Chicken(
-            // id is now null, so the server will generate it
+            // como el id es automatico lo dejamos como nullo, asi el servidor lo agrega auto
             id = null,
             nombre = name.value,
             edad = age.value.toIntOrNull() ?: 0,

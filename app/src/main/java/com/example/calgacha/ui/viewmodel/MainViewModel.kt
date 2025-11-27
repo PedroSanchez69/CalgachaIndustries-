@@ -24,7 +24,7 @@ class MainViewModel(private val chickenRepository: chickenRepository) : ViewMode
     val selectedChicken: StateFlow<Chicken?> = _selectedChicken.asStateFlow()
 
     init {
-        // Fetch chickens from the network when the ViewModel is created
+        // Actualiza las gallinas cuando el viewmodel se crea
         viewModelScope.launch {
             chickenRepository.refreshChickens()
         }

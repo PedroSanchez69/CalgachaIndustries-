@@ -11,7 +11,7 @@ import kotlin.jvm.java
 
 object RetrofitInstance {
 
-    private const val BASE_URL = "https://calgachaindustries-backend.onrender.com"
+    private const val BASE_URL = "https://calgachaindustries-backend.onrender.com" // url base de la api
 
     private val logging = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
@@ -25,8 +25,8 @@ object RetrofitInstance {
         Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(client)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create()) // usa la libreria gson para convertir json a objetos
             .build()
-            .create(ChickenApiService::class.java)
+            .create(ChickenApiService::class.java) // esto para implementar la interfaz de la api y los endpoints (get, patch, etc.)
     }
 }

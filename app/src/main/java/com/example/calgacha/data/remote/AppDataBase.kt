@@ -22,7 +22,6 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "chickens_db"
                 )
-                    // This will destroy and recreate the database on a version change
                     .fallbackToDestructiveMigration()
                     .build()
                     .also { INSTANCE = it }
