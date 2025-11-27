@@ -15,6 +15,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.calgacha.data.remote.AppDatabase
+import com.example.calgacha.data.remote.RetrofitInstance
 import com.example.calgacha.data.repository.UserPreferencesRepository
 import com.example.calgacha.data.repository.chickenRepository
 import com.example.calgacha.di.ViewModelFactory
@@ -37,16 +38,19 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val database = AppDatabase.getDatabase(applicationContext)
-        val chickenRepository = chickenRepository(database.chickenDao())
+        val chickenRepository = chickenRepository(database.chickenDao(), RetrofitInstance.api)
         val userPreferencesRepository = UserPreferencesRepository(applicationContext)
         val factory = ViewModelFactory(chickenRepository, userPreferencesRepository)
 
         enableEdgeToEdge()
         setContent {
+
             NavigationTheme {
                 App(factory = factory)
+
             }
         }
+
     }
 }
 
@@ -89,7 +93,7 @@ fun App(factory: ViewModelFactory) {
                     viewModel = mainViewModel,
                     navController = navController,
                     onItemClick = { itemId ->
-                        navController.navigate("${Routes.HISTORY}/${itemId}")
+                        navController.navigate(Routes.historyDetailRoute(itemId))
                     }
                 )
             }

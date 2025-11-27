@@ -1,5 +1,7 @@
 package com.example.calgacha.ui.viewmodel
 
+import android.graphics.Bitmap
+import android.net.Uri
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -18,6 +20,9 @@ class AddViewModel(private val repository: chickenRepository) : ViewModel() {
     var description = mutableStateOf("")
     var descriptionError = mutableStateOf<String?>(null)
 
+    var imageBitmap = mutableStateOf<Bitmap?>(null)
+    var imageUri = mutableStateOf<Uri?>(null)
+
     fun onNameChange(value: String) {
         name.value = value
         nameError.value = when {
@@ -31,6 +36,8 @@ class AddViewModel(private val repository: chickenRepository) : ViewModel() {
         age.value = value
         ageError.value = when {
             value.isBlank() -> "La edad no puede estar vacía"
+            value.toIntOrNull() == null -> "La edad debe ser un número válido"
+            (value.toIntOrNull() ?: 0) <= 0 -> "La edad debe ser mayor a 0"
             else -> null
         }
     }
@@ -51,15 +58,24 @@ class AddViewModel(private val repository: chickenRepository) : ViewModel() {
         }
     }
 
+    fun onImageChange(uri: Uri?, bitmap: Bitmap?) {
+        imageUri.value = uri
+        imageBitmap.value = bitmap
+    }
+
     fun addChicken(onChickenAdded: () -> Unit) {
         if (!isFormValid()) return
 
+        val imagePathToSave = imageUri.value?.toString()
+
         val newChicken = Chicken(
-            id = 0, // El id será generado con el room (la base de datos :p)
+            // id is now null, so the server will generate it
+            id = null,
             nombre = name.value,
             edad = age.value.toIntOrNull() ?: 0,
             raza = breed.value,
-            descripcion = description.value
+            descripcion = description.value,
+            imagenUri = imagePathToSave
         )
 
         viewModelScope.launch {

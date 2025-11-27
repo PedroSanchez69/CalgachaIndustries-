@@ -1,33 +1,72 @@
 package com.example.calgacha.ui.screens
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
+import android.Manifest
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
 import com.example.calgacha.ui.viewmodel.AddViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddScreen(vm: AddViewModel, navController: NavController) {
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        TopAppBar(title = { Text("Nueva gallina") })
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var bitmap by remember { mutableStateOf<Bitmap?>(null) }
 
+    val context = LocalContext.current
+
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // Permiso concedido, el usuario puede pulsar el botón de nuevo
+        } else {
+            // Permiso denegado
+        }
+    }
+
+    val takePictureLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicturePreview()
+    ) { bmp ->
+        bitmap = bmp
+        imageUri = null
+    }
+
+    val selectImageLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        imageUri = uri
+        bitmap = null
+    }
+
+    Scaffold(
+        topBar = { TopAppBar(title = { Text("Nueva gallina") }) }
+    ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -38,20 +77,17 @@ fun AddScreen(vm: AddViewModel, navController: NavController) {
                 isError = vm.nameError.value != null,
                 modifier = Modifier.fillMaxWidth()
             )
-            vm.nameError.value?.let {
-                Text(text = it)
-            }
+            vm.nameError.value?.let { Text(text = it, color = MaterialTheme.colorScheme.error) }
 
             OutlinedTextField(
                 value = vm.age.value,
                 onValueChange = { vm.onAgeChange(it) },
-                label = { Text("Edad") },
+                label = { Text("Edad (solo números)") },
                 isError = vm.ageError.value != null,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
             )
-            vm.ageError.value?.let {
-                Text(text = it)
-            }
+            vm.ageError.value?.let { Text(text = it, color = MaterialTheme.colorScheme.error) }
 
             OutlinedTextField(
                 value = vm.breed.value,
@@ -60,25 +96,84 @@ fun AddScreen(vm: AddViewModel, navController: NavController) {
                 isError = vm.breedError.value != null,
                 modifier = Modifier.fillMaxWidth()
             )
-            vm.breedError.value?.let {
-                Text(text = it)
-            }
+            vm.breedError.value?.let { Text(text = it, color = MaterialTheme.colorScheme.error) }
 
             OutlinedTextField(
                 value = vm.description.value,
                 onValueChange = { vm.onDescriptionChange(it) },
                 label = { Text("Descripción") },
                 isError = vm.descriptionError.value != null,
+                minLines = 3,
                 modifier = Modifier.fillMaxWidth()
             )
-            vm.descriptionError.value?.let {
-                Text(text = it)
+            vm.descriptionError.value?.let { Text(text = it, color = MaterialTheme.colorScheme.error) }
+
+            Spacer(modifier = Modifier.height(2.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(
+                    onClick = {
+                        when (PackageManager.PERMISSION_GRANTED) {
+                            ContextCompat.checkSelfPermission(
+                                context,
+                                Manifest.permission.CAMERA
+                            ) -> {
+                                takePictureLauncher.launch(null)
+                            }
+                            else -> {
+                                requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+                            }
+                        }
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("📷 Tomar Foto")
+                }
+
+                Button(
+                    onClick = { selectImageLauncher.launch("image/*") },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("🖼️ Galería")
+                }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+            when {
+                bitmap != null -> {
+                    Image(
+                        bitmap = bitmap!!.asImageBitmap(),
+                        contentDescription = "Foto de la gallina",
+                        modifier = Modifier.fillMaxWidth().height(200.dp),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+                imageUri != null -> {
+                    Image(
+                        painter = rememberAsyncImagePainter(imageUri),
+                        contentDescription = "Imagen de la gallina",
+                        modifier = Modifier.fillMaxWidth().height(200.dp),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+                else -> {
+                    Text(
+                        "Ninguna imagen seleccionada",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(2.dp))
 
             Button(
                 onClick = {
+                    vm.onImageChange(uri = imageUri, bitmap = bitmap)
                     vm.addChicken {
                         navController.popBackStack()
                     }
@@ -86,7 +181,7 @@ fun AddScreen(vm: AddViewModel, navController: NavController) {
                 enabled = vm.isFormValid(),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Guardar")
+                Text("Guardar Gallina")
             }
         }
     }

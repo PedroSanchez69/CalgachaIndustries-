@@ -15,23 +15,27 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.calgacha.data.remote.model.Chicken
 import com.example.calgacha.ui.viewmodel.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailScreen(id: Int, viewModel: MainViewModel, onBack: () -> Unit) {
-    var item by remember { mutableStateOf<Chicken?>(null) }
-
     LaunchedEffect(key1 = id) {
-        item = viewModel.getChickenById(id = id)
+        viewModel.getChickenById(id = id)
+    }
+
+    val chicken by viewModel.selectedChicken.collectAsState()
+
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.onDetailScreenLeave()
+        }
     }
 
     Scaffold(
@@ -52,10 +56,10 @@ fun DetailScreen(id: Int, viewModel: MainViewModel, onBack: () -> Unit) {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            if (item != null) {
-                Text(item!!.nombre, style = MaterialTheme.typography.titleMedium)
+            if (chicken != null) {
+                Text(chicken!!.nombre, style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.height(8.dp))
-                Text(item!!.descripcion, style = MaterialTheme.typography.bodyMedium)
+                Text(chicken!!.descripcion, style = MaterialTheme.typography.bodyMedium)
             } else {
                 Text("Item no encontrado")
             }

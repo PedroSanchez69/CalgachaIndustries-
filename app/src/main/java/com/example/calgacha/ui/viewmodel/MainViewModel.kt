@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.calgacha.data.remote.model.Chicken
 import com.example.calgacha.data.repository.chickenRepository
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -18,13 +20,29 @@ class MainViewModel(private val chickenRepository: chickenRepository) : ViewMode
             initialValue = emptyList()
         )
 
+    private val _selectedChicken = MutableStateFlow<Chicken?>(null)
+    val selectedChicken: StateFlow<Chicken?> = _selectedChicken.asStateFlow()
+
+    init {
+        // Fetch chickens from the network when the ViewModel is created
+        viewModelScope.launch {
+            chickenRepository.refreshChickens()
+        }
+    }
+
     fun deleteChicken(chicken: Chicken) {
         viewModelScope.launch {
             chickenRepository.deleteChicken(chicken)
         }
     }
 
-    suspend fun getChickenById(id: Int): Chicken? {
-        return chickenRepository.getChickenById(id)
+    fun getChickenById(id: Int) {
+        viewModelScope.launch {
+            _selectedChicken.value = if (id != -1) chickenRepository.getChickenById(id) else null
+        }
+    }
+
+    fun onDetailScreenLeave() {
+        _selectedChicken.value = null
     }
 }

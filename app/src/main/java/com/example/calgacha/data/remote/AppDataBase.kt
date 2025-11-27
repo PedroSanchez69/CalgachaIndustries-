@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import com.example.calgacha.data.remote.dao.ChickenDao
 import com.example.calgacha.data.remote.model.Chicken
 
-@Database(entities = [Chicken::class], version = 1)
+@Database(entities = [Chicken::class], version = 3, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun chickenDao(): ChickenDao
 
@@ -21,7 +21,11 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "chickens_db"
-                ).allowMainThreadQueries().build().also { INSTANCE = it }
+                )
+                    // This will destroy and recreate the database on a version change
+                    .fallbackToDestructiveMigration()
+                    .build()
+                    .also { INSTANCE = it }
             }
         }
     }

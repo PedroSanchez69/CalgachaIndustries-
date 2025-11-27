@@ -3,18 +3,25 @@ package com.example.calgacha.data.remote.dao
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.calgacha.data.remote.model.Chicken
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ChickenDao {
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(chickens: List<Chicken>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertChicken(chicken: Chicken)
+
     @Query("SELECT * FROM Gallinas WHERE id = :id")
     suspend fun getChickenById(id: Int): Chicken?
+
     @Query("SELECT * FROM Gallinas")
     fun getAllChickens(): Flow<List<Chicken>> // Changed to return Flow
+    
     @Delete
     suspend fun deleteChicken(chicken: Chicken)
 
